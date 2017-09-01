@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>animation 动画旋转移动缩放</title>
+  <script src="../node_modules/openlayers/dist/ol.js" type="text/javascript"></script>
+  <link rel="stylesheet" href="../node_modules/openlayers/dist/ol.css" type="text/css"/>
+</head>
+<body>
+<div>
+  <button onclick="letfSwit()">left</button>
+  <button onclick="righrSwit()">right</button>
+  <button onclick="pantoLonDon()">pan to london</button>
+  <button onclick="elasticToMoscow()">elastic to moscow</button>
+  <button onclick="bounceToY()">bounce to y</button>
+  <button onclick="spinToRome()">spin to rome</button>
+  <button onclick="bern()">bern</button>
+  <button onclick="rorateToRome()">rorate to rome</button>
+  <button onclick="tour()">tour</button>
+</div>
+<div id="map"></div>
+<script type="text/javascript">
+  // ol.proj.fromLonLat([28.9744, 41.0128]) 将坐标转变成投影坐标
+  // 方法 ol.proj.fromLonLat = function(coordinate, opt_projection) opt_projection 投影坐标系 默认3857
+
+  // 动画效果的关键点在于 loadTilesWhileAnimating:true  view.animate
+  var map = new ol.Map({
+    view: new ol.View({
+      center: ol.proj.fromLonLat([28.9744, 41.0128]),
+      zoom: 6,
+    }),
+    loadTilesWhileAnimating: true, // 使其有动画效果
+    layers: [
+      new ol.layer.Tile({
+        preload: 4,  // 提前预加载4级时处理效果
+        source: new ol.source.OSM()
+      })
+    ],
+    target: 'map'
+  })
+
+  /**
+   * 向左旋转
+   */
+  function letfSwit() {
+    var view = map.getView()
+    // 获取当前角度 减少部分值 向左旋转
+    // 向右旋转 同理改为+
+    view.animate({
+      rotation: view.getRotation() - Math.PI / 2
+    })
+  }
+
+  /**
+   * 向右旋转
+   */
+  function righrSwit() {
+    var view = map.getView()
+    view.animate({
+      rotation: view.getRotation() + Math.PI / 2
+    })
+  }
+
+  /**
+   * 移动至伦敦
+   */
+  function pantoLonDon() {
+    // 首先确认伦敦位置坐标
+    var london = ol.proj.fromLonLat([-0.12755, 51.507222]);
+    var view = map.getView()
+    view.animate({
+      center: london,
+      duration: 2000
+    });
+  }
+
+  /**
+   * 移动至莫斯科 移动时动画有弹力效果 (动画效果产生的)
+   */
+  function elasticToMoscow() {
+    var moscow = ol.proj.fromLonLat([37.6178, 55.7517]); // 确认莫斯科坐标
+    var view = map.getView()
+    view.animate({
+      center: moscow,
+      duration: 2000,
+      easing: elastic
+    });
+  }
+
+  /**
+   * An elastic easing method (from https://github.com/DmitryBaranovskiy/raphael).
+   * @param t
+   * @returns {number}
+   */
+  function elastic(t) {
+    return Math.pow(2, -10 * t) * Math.sin((t - 0.075) * (2 * Math.PI) / 0.3) + 1;
+  }
+
+  /**
+   * 移动至伊斯坦布尔 有反弹动画效果
+   */
+  function bounceToY() {
+    var istanbul = ol.proj.fromLonLat([28.9744, 41.0128]);
+    var view = map.getView()
+    view.animate({
+      center: istanbul,
+      duration: 2000,
+      easing: bounce
+    })
+  }
+
+  /**
+   * A bounce easing method (from https://github.com/DmitryBaranovskiy/raphael).
+   * @param t
+   * @returns {*}
+   */
+  function bounce(t) {
+    var s = 7.5625, p = 2.75, l;
+    if (t < (1 / p)) {
+      l = s * t * t;
+    } else {
+      if (t < (2 / p)) {
+        t -= (1.5 / p);
+        l = s * t * t + 0.75;
+      } else {
+        if (t < (2.5 / p)) {
+          t -= (2.25 / p);
+          l = s * t * t + 0.9375;
+        } else {
+          t -= (2.625 / p);
+          l = s * t * t + 0.984375;
+        }
+      }
+    }
+    return l;
+  }
+
+  /**
+   * 移动至罗马 有旋转效果
+   */
+  function spinToRome() {
+    var rome = ol.proj.fromLonLat([12.5, 41.9]);
+    var view = map.getView();
+    var center = view.getCenter();
+    view.animate({
+      center: [
+        center[0] + (rome[0] - center[0]) / 2,
+        center[1] + (rome[1] - center[1]) / 2
+      ],
+      rotation: Math.PI,
+      easing: ol.easing.easeIn
+    }, {
+      center: rome,
+      rotation: 2 * Math.PI,
+      easing: ol.easing.easeOut
+    });
+  }
+
+  /**
+   * 移动至伯尔尼 动画效果有飞行效果
+   */
+  function bern() {
+    var bern = ol.proj.fromLonLat([7.4458, 46.95]);
+    flyTo(bern, function () {
+    });
+  }
+
+  function flyTo(location, done) {
+    var view = map.getView()
+    var duration = 2000;
+    var zoom = view.getZoom();
+    var parts = 2;
+    var called = false;
+
+    function callback(complete) {
+      --parts;
+      if (called) {
+        return;
+      }
+      if (parts === 0 || !complete) {
+        called = true;
+        done(complete);
+      }
+    }
+
+    view.animate({
+      center: location,
+      duration: duration
+    }, callback);
+    view.animate({
+      zoom: zoom - 1,
+      duration: duration / 2
+    }, {
+      zoom: zoom,
+      duration: duration / 2
+    }, callback);
+  }
+
+  /**
+   * 移动至罗马 旋转
+   */
+  function rorateToRome() {
+    var view = map.getView()
+    var rome = ol.proj.fromLonLat([12.5, 41.9]);
+    var rotation = view.getRotation();
+    view.animate({
+      rotation: rotation + Math.PI,
+      anchor: rome,
+      easing: ol.easing.easeIn
+    }, {
+      rotation: rotation + 2 * Math.PI,
+      anchor: rome,
+      easing: ol.easing.easeOut
+    })
+  }
+
+  /**
+   * 将这几个国家都行走一遍
+   */
+  function tour() {
+    var london = ol.proj.fromLonLat([-0.12755, 51.507222]);
+    var moscow = ol.proj.fromLonLat([37.6178, 55.7517]);
+    var istanbul = ol.proj.fromLonLat([28.9744, 41.0128]);
+    var rome = ol.proj.fromLonLat([12.5, 41.9]);
+    var bern = ol.proj.fromLonLat([7.4458, 46.95]);
+    var locations = [london, bern, rome, moscow, istanbul];
+    var index = -1;
+
+    function next(more) {
+      if (more) {
+        ++index;
+        if (index < locations.length) {
+          var delay = index === 0 ? 0 : 750;
+          setTimeout(function () {
+            flyTo(locations[index], next);
+          }, delay);
+        } else {
+          alert('Tour complete');
+        }
+      } else {
+        alert('Tour cancelled');
+      }
+    }
+
+    next(true);
+  }
+</script>
+</body>
+</html>
