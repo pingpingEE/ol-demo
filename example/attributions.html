@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>attributions 版权归属</title>
+  <script src="../node_modules/openlayers/dist/ol.js" type="text/javascript"></script>
+  <link rel="stylesheet" href="../node_modules/openlayers/dist/ol.css" type="text/css"/>
+</head>
+<body>
+<div id="map"></div>
+<script type="text/javascript">
+  var params = {
+    url: 'https://baidu.com',
+    title: '恒达时讯',
+    messages: '版权所有'
+  }
+  var attribution = new ol.Attribution({
+    html: '&copy; ' + '<a href="' + params['url'] + '">' + params['title'] + '</a> ' + params['messages']
+  })
+  var map = new ol.Map({
+    view: new ol.View({
+      center: [0, 0],
+      zoom: 2
+    }),
+    target: 'map',
+    layers: [new ol.layer.Tile({
+      source: new ol.source.OSM()
+    })]
+//    controls: ol.control.defaults({attribution: false}).extend([attribution])
+  })
+  var layer = map.getLayers().getArray()[0]
+  // 重新设置版权信息内容
+  layer.getSource().setAttributions(attribution)
+</script>
+</body>
+</html>
