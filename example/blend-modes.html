@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>blend-modes</title>
+  <script src="../node_modules/openlayers/dist/ol.js" type="text/javascript"></script>
+  <link rel="stylesheet" href="../node_modules/openlayers/dist/ol.css" type="text/css"/>
+</head>
+<body>
+<div>
+  <select id="blend-mode" class="form-control">
+    <option value="source-over">source-over (default)</option>
+    <option>source-in</option>
+    <option>source-out</option>
+    <option>source-atop</option>
+    <option>destination-over</option>
+    <option>destination-in</option>
+    <option>destination-out</option>
+    <option>destination-atop</option>
+    <option>lighter</option>
+    <option>copy</option>
+    <option>xor</option>
+    <option>multiply</option>
+    <option>screen</option>
+    <option>overlay</option>
+    <option>darken</option>
+    <option>lighten</option>
+    <option>color-dodge</option>
+    <option>color-burn</option>
+    <option>hard-light</option>
+    <option>soft-light</option>
+    <option selected>difference</option>
+    <option>exclusion</option>
+    <option>hue</option>
+    <option>saturation</option>
+    <option>color</option>
+    <option>luminosity</option>
+  </select>
+</div>
+<div>
+  <label>
+    <input type="checkbox" id="affect-red" checked>
+    Red circle affected
+  </label>
+  <label>
+    <input type="checkbox" id="affect-green" checked>
+    Green circle affected
+  </label>
+  <label>
+    <input type="checkbox" id="affect-blue" checked>
+    Blue circle affected
+  </label>
+</div>
+<div id="map"></div>
+<script type="text/javascript">
+  var redLayer = new ol.layer.Vector({
+    source: new ol.source.Vector({
+      features: [new ol.Feature(new ol.geom.Point([0, 0]))],
+      wrapX: false
+    }),
+    style: new ol.style.Style({
+      image: new ol.style.Circle({
+        radius: 120,
+        fill: new ol.style.Fill({
+          color: 'red'
+        }),
+        stroke: new ol.style.Stroke({
+          color: 'rgb(255,0,0)',
+          width: 15
+        })
+      })
+    })
+  })
+  var greenLayer = new ol.layer.Vector({
+    source: new ol.source.Vector({
+      // 433.013 is roughly 250 * Math.sqrt(3)
+      features: [new ol.Feature(new ol.geom.Point([250, 433.013]))]
+    }),
+    style: new ol.style.Style({
+      image: new ol.style.Circle({
+        fill: new ol.style.Fill({
+          color: 'rgba(0,255,0,0.8)'
+        }),
+        stroke: new ol.style.Stroke({
+          color: 'rgb(0,255,0)',
+          width: 15
+        }),
+        radius: 120
+      })
+    })
+  });
+  var blueLayer = new ol.layer.Vector({
+    source: new ol.source.Vector({
+      features: [new ol.Feature(new ol.geom.Point([500, 0]))]
+    }),
+    style: new ol.style.Style({
+      image: new ol.style.Circle({
+        fill: new ol.style.Fill({
+          color: 'rgba(0,0,255,0.8)'
+        }),
+        stroke: new ol.style.Stroke({
+          color: 'rgb(0,0,255)',
+          width: 15
+        }),
+        radius: 120
+      })
+    })
+  });
+  var map = new ol.Map({
+    view: new ol.View({
+      center: [250, 220],
+      extent: [0, 0, 500, 500],
+      resolution: 4,
+      minResolution: 2,
+      maxResolution: 32
+    }),
+    target: 'map',
+    layers: [redLayer, greenLayer, blueLayer]
+  })
+
+  var select = document.getElementById('blend-mode');
+  var affectRed = document.getElementById('affect-red');
+  var affectGreen = document.getElementById('affect-green');
+  var affectBlue = document.getElementById('affect-blue');
+
+  select.addEventListener('change', function() {
+    map.render();
+  });
+
+  var setBlendModeFromSelect = function(evt) {
+    // globalCompositeOperation  此属性为canvas属性
+    // 设置或返回如何将一个源（新的）图像绘制到目标（已有）的图像上
+    // 源图像 = 您打算放置到画布上的绘图。
+    // 目标图像 = 您已经放置在画布上的绘图。
+    // 各个参数详情 请参考 http://www.w3school.com.cn/tags/canvas_globalcompositeoperation.asp
+    evt.context.globalCompositeOperation = select.value;
+  };
+
+  var resetBlendModeFromSelect = function(evt) {
+    evt.context.globalCompositeOperation = 'source-over';
+  };
+
+  var bindLayerListeners = function(layer) {
+    layer.on('precompose', setBlendModeFromSelect); // precompose 监听准备渲染事件
+    layer.on('postcompose', resetBlendModeFromSelect); // postcompose 渲染中事件
+  };
+
+  var unbindLayerListeners = function(layer) {
+    layer.un('precompose', setBlendModeFromSelect);
+    layer.un('postcompose', resetBlendModeFromSelect);
+  };
+
+  bindLayerListeners(redLayer);
+  bindLayerListeners(greenLayer);
+  bindLayerListeners(blueLayer);
+
+  var affectLayerClicked = function() {
+    var layer;
+    if (this.id == 'affect-red') {
+      layer = redLayer;
+    } else if (this.id == 'affect-green') {
+      layer = greenLayer;
+    } else {
+      layer = blueLayer;
+    }
+    if (this.checked) {
+      bindLayerListeners(layer);
+    } else {
+      unbindLayerListeners(layer);
+    }
+    map.render();
+  };
+
+  affectRed.addEventListener('click', affectLayerClicked);
+  affectGreen.addEventListener('click', affectLayerClicked);
+  affectBlue.addEventListener('click', affectLayerClicked);
+
+</script>
+</body>
+</html>
