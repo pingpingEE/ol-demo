@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BingMaps(ol.source.BingMaps)</title>
+  <link rel="stylesheet" href="../node_modules/openlayers/dist/ol.css" type="text/css"/>
+  <script src="../node_modules/openlayers/dist/ol.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="map"></div>
+<script type="text/javascript">
+  // BingMaps key 需要自己注册
+  // 注册地址：http://www.bingmapsportal.com
+  // 注册方法：https://msdn.microsoft.com/en-us/library/ff428642.aspx
+
+  var styles = [
+    'Road',
+    'RoadOnDemand',
+    'Aerial',
+    'AerialWithLabels',
+    'collinsBart',
+    'ordnanceSurvey'
+  ]; // 几种BingMaps 地图样式
+
+  var map = new ol.Map({
+    view: new ol.View({
+      center: [-6655.5402445057125, 6709968.258934638],
+      zoom: 13
+    }),
+    target: 'map',
+    layers: [
+      new ol.layer.Tile({
+        visible: true,
+        preload: Infinity,
+        source: new ol.source.BingMaps({
+          key: 'PWg1gnQifU4QIZGVucpp~u5ONF6NhEeLFoeonksUxmg~Ap83JUtihmhJzJwTOb2z97gCDbqefj10D4xZ5eOoCj-5wrYXYmrP0lybq7F4qGjY',
+          imagerySet: 'RoadOnDemand'
+        })
+      })
+    ]
+  })
+</script>
+</body>
+</html>
